@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from itertools import product
 from common import graph_cal, graph_load
 from common.my_func import is_no_dup_elems
-from common.constant import WEIGHT_DECREASE_LEVEL
+from common.constant import BASE_WEIGHT
 
 
 class GeneticAlgo:
@@ -31,6 +31,7 @@ class GeneticAlgo:
                 edge = random.choice(del_choice) if op == 'del' else random.choice(add_choice)
                 dna.append((op, edge))
             origin_pop.append(tuple(dna))  # list is not hashable
+        origin_pop = list(set(origin_pop))  # 去重
         origin_valid_pop = self.eliminate_invalid_dna(origin_pop, group)
         print("generate {}/{} origin valid population".format(len(origin_valid_pop), len(origin_pop)))
         return origin_valid_pop
@@ -81,7 +82,7 @@ class GeneticAlgo:
         out_score = 0
         for gene in add_genes:
             g_v_name, c_v_name = gene[1]
-            out_attraction = 1 + WEIGHT_DECREASE_LEVEL * comm.degree(c_v_name)
+            out_attraction = 1 + BASE_WEIGHT * comm.degree(c_v_name)
             in_attraction = graph_cal.cal_as_of_vertex(group_copy, g_v_name)
             out_score += (out_attraction / in_attraction)
         in_score = graph_cal.cal_safeness_of_graph(group_copy)
@@ -157,8 +158,8 @@ class GeneticAlgo:
         # for _ in best_each_gen: print(_)
         hidden_scores = [graph_cal.cal_hidden_score(group.copy(), comm.copy(), _[0])[1] for _ in best_each_gen]
         our_scores = [_[1] for _ in best_each_gen]
-        plt.scatter(our_scores, hidden_scores)
-        plt.show()
+        # plt.scatter(our_scores, hidden_scores)
+        # plt.show()
         return max(best_each_gen, key=lambda x: x[1])
 
 

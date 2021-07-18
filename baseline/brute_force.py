@@ -1,7 +1,7 @@
 import igraph as ig
 from itertools import product, combinations
 from common import graph_cal, graph_load
-from common.constant import WEIGHT_DECREASE_LEVEL
+from common.constant import BASE_WEIGHT
 
 
 class BruteForce:
@@ -28,7 +28,7 @@ class BruteForce:
             for add_op in add_ops:
                 g_v_name, c_v_name = add_op
                 in_attraction = graph_cal.cal_as_of_vertex(group_copy, g_v_name)
-                out_attraction = 1 + WEIGHT_DECREASE_LEVEL * comm.degree(c_v_name)
+                out_attraction = 1 + BASE_WEIGHT * comm.degree(c_v_name)
                 out_score += (out_attraction / in_attraction)
             return in_score + out_score + self.conv_rate * convenience
         else:

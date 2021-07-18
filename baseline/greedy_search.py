@@ -1,6 +1,6 @@
 import igraph as ig
 from common import graph_cal, graph_load
-from common.constant import INF_BUDGET, WEIGHT_DECREASE_LEVEL
+from common.constant import INF_BUDGET, BASE_WEIGHT
 
 
 def sub_modular(score: list) -> bool:
@@ -20,7 +20,7 @@ class GreedySearch:
         out_safe = 0
         for i in range(len(self.vs_name_of_out_es)):
             c_v_name, g_v_name = self.vs_name_of_out_es[i]
-            out_attraction = 1 + WEIGHT_DECREASE_LEVEL * comm.degree(c_v_name)
+            out_attraction = 1 + BASE_WEIGHT * comm.degree(c_v_name)
             in_attraction = graph_cal.cal_as_of_vertex(group, g_v_name)
             out_safe += (out_attraction / in_attraction - 1)
         in_safe = graph_cal.cal_safeness_of_graph(group)

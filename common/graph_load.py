@@ -41,7 +41,6 @@ def create_multi_tree(children: int, depth: int, vertex_name_prefix: str) -> ig.
 def create_barabasi_albert_graph(num_v: int, num_e_of_each_vertex: int, vertex_name_prefix: str) -> ig.Graph:
     """ create a graph based on the Barabasi-Albert model """
     g = ig.Graph.Barabasi(num_v, num_e_of_each_vertex)
-    ig.Graph.Erdos_Renyi()
     g.vs['name'] = [vertex_name_prefix + str(i) for i in range(g.vcount())]
     return g
 

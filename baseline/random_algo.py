@@ -3,7 +3,7 @@ import igraph as ig
 from itertools import product
 from common import graph_cal, graph_load
 from common.my_func import is_no_dup_elems
-from common.constant import WEIGHT_DECREASE_LEVEL
+from common.constant import BASE_WEIGHT
 
 
 class RandomAlgo:
@@ -57,7 +57,7 @@ class RandomAlgo:
         for gene in add_ops:
             g_v_name, c_v_name = gene[1]
             in_attraction = graph_cal.cal_as_of_vertex(group_copy, g_v_name)
-            out_attraction = 1 + WEIGHT_DECREASE_LEVEL * comm.degree(c_v_name)
+            out_attraction = 1 + BASE_WEIGHT * comm.degree(c_v_name)
             out_score += (out_attraction / in_attraction)
         in_score = graph_cal.cal_safeness_of_graph(group_copy)
         convenience = graph_cal.cal_convenience_of_graph(group_copy)
@@ -86,19 +86,20 @@ class RandomAlgo:
         comm_top_vertices = [_[0] for _ in sorted([(_['name'], comm.degree(_)) for _ in comm.vs],
                                                   key=lambda x: x[1], reverse=True)[:budget]]
         pop = self.random_gen_valid_pop(group, comm_top_vertices, budget)
-        scores = [self.score(_, group, comm, conv_rate) for _ in pop]
-        best_idx = scores.index(max(scores))
+        # scores = [self.score(_, group, comm, conv_rate) for _ in pop]
+        # best_idx = scores.index(max(scores))
+        # print("origin: best ops: {}, best score: {}".format(pop[best_idx], scores[best_idx]))
         # hidden_scores = [graph_cal.cal_hidden_score(group.copy(), comm.copy(), _)[1] for _ in pop]
-        # print(scores)
-        # print(hidden_scores)
         # plt.scatter(scores, hidden_scores)
         # plt.show()
-        print("origin: best ops: {}, best score: {}".format(pop[best_idx], scores[best_idx]))
+        random_ups = random.choice(pop)
+        return pop[random_ups]
 
 
 if __name__ == '__main__':
     c = graph_load.load_graph_gml("../data/lesmis.gml", 'c-')
     g = graph_load.create_full_graph(5, 'g-')
     random_algo = RandomAlgo(10000)
-    random_algo.run(g, c, budget=6, conv_rate=0)
+    ops = random_algo.run(g, c, budget=6, conv_rate=0)
+    print("ops: {}, {}".format(ops, graph_cal.cal_hidden_score(g, c, ops)))
     print("ok")

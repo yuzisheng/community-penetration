@@ -1,6 +1,6 @@
 import igraph as ig
 import _pickle as pickle
-from common.constant import WEIGHT_DECREASE_LEVEL
+from common.constant import BASE_WEIGHT
 from common import graph_load
 
 
@@ -14,7 +14,7 @@ def cal_as_of_vertex(g: ig.Graph, vertex_name: str) -> float:
     vertex_idx = g.vs.find(vertex_name).index  # find edges or vertices using index instead of name
     as_of_v = 0
     # first layer search
-    weight = 1  # init weight
+    weight = 1/2  # init weight
     first_layer_edges = g.incident(vertex_idx)
     vertices_to_search = g.neighbors(vertex_idx)
     edges_searched = {_ for _ in first_layer_edges}
@@ -23,7 +23,7 @@ def cal_as_of_vertex(g: ig.Graph, vertex_name: str) -> float:
     # loop to traverse all edges
     while True:
         # print("# search vertices: {}".format([g.vs['name'][_] for _ in vertices_to_search]))
-        weight *= WEIGHT_DECREASE_LEVEL  # weight decrease with higher layer
+        weight *= BASE_WEIGHT  # weight decrease with higher layer
         next_layer_edges = []  # store adjacent edges of vertices (allow to duplicate)
         next_layer_vertices = []  # store neighbors vertices of vertices (allow to duplicate)
         for v in vertices_to_search:
@@ -43,7 +43,7 @@ def cal_safeness_of_graph(g: ig.Graph) -> float:
     num_v = g.vcount()
     # complete graph
     # max_avg_as = cal_as_of_vertex(graph_load.create_full_graph(num_v, 'complete-'), 'complete-0')
-    max_avg_as = (num_v - 1) * 1 + (num_v * (num_v - 1) / 2 - (num_v - 1)) * WEIGHT_DECREASE_LEVEL
+    max_avg_as = (num_v - 1) * 1 + (num_v * (num_v - 1) / 2 - (num_v - 1)) * BASE_WEIGHT
     # line graph
     min_avg_as = sum([cal_as_of_vertex(graph_load.create_multi_tree(
         1, num_v - 1, 'line-'), 'line-' + str(_)) for _ in range(num_v)]) / num_v
@@ -59,8 +59,10 @@ def cal_hidden_score(group: ig.Graph, community: ig.Graph, ops: list) -> (list, 
     for op in ops:
         new_comm.add_edge(*op[1]) if op[0] == 'add' else new_comm.delete_edges([op[1]])
     cluster_c = new_comm.community_leading_eigenvector()
+    # cluster_c = new_comm.community_label_propagation()
     # ig.plot(cluster_c, "../data/result/community_with_group_cluster.pdf")
     clusters = [sub_graph.vs['name'] for sub_graph in cluster_c.subgraphs()]
+    print("clusters: {}".format(len(clusters)))
     group_vs = group.vs['name']
     g_clusters = []
     for cluster in clusters:

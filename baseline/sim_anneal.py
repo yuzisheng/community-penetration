@@ -4,8 +4,9 @@ import random
 import numpy as np
 import igraph as ig
 from itertools import product
+from scipy.special import comb
 from common import graph_cal, graph_load
-from common.constant import WEIGHT_DECREASE_LEVEL
+from common.constant import BASE_WEIGHT
 
 
 class SimulatedAnnealing:
@@ -45,7 +46,7 @@ class SimulatedAnnealing:
         for add_op in add_ops:
             g_v_name, c_v_name = add_op
             in_attraction = graph_cal.cal_as_of_vertex(group_copy, g_v_name)
-            out_attraction = 1 + WEIGHT_DECREASE_LEVEL * comm.degree(c_v_name)
+            out_attraction = 1 + BASE_WEIGHT * comm.degree(c_v_name)
             out_score += (out_attraction / in_attraction)
         in_score = graph_cal.cal_safeness_of_graph(group_copy)
         convenience = graph_cal.cal_convenience_of_graph(group_copy)
@@ -95,11 +96,15 @@ class SimulatedAnnealing:
                                                   key=lambda x: x[1], reverse=True)[:self.budget]]
         curr_ops = self.gen_valid_ops(group, comm_top_vertices)
         curr_energy = self.obj_fun(curr_ops, group, comm)
+        tot_cond = int(sum([comb(group.vcount(), i) * comb(group.vcount(), i) *
+                            comb(group.ecount(), self.budget - i) for i in range(1, self.budget + 1)]))
+        print("total condition: {}".format(tot_cond))
         alpha = 0.99
         tmp = 1e5
-        tmp_min = 1e-5
+        tmp_min = 1e-2
         counter = 0
-        while tmp >= tmp_min and counter <= 50000:
+        counter_max = 50000
+        while tmp >= tmp_min and counter <= counter_max:
             next_ops = self.disturbance(curr_ops, group, comm_top_vertices)
             next_energy = self.obj_fun(next_ops, group, comm)
             delta_energy = next_energy - curr_energy
@@ -118,12 +123,13 @@ class SimulatedAnnealing:
 
 
 if __name__ == '__main__':
-    c = graph_load.load_graph_gml("../data/lesmis.gml", 'c-')
-    g = graph_load.create_full_graph(5, 'g-')
+    c = graph_load.load_graph_gml("../data/karate.gml", 'c-')
+    g = graph_load.create_multi_tree(2, 2, 'g-')
     start_time = time.time()
-    sim_ann = SimulatedAnnealing(10, 0)
-    best = sim_ann.run(g.copy(), c.copy())
+    sim_ann = SimulatedAnnealing(4, 0)
+    ops = sim_ann.run(g.copy(), c.copy())
     end_time = time.time()
+    print(ops)
     print("#hidden: {}, {} #time: {}s".format(*graph_cal.cal_hidden_score(
-        g.copy(), c.copy(), best), end_time - start_time))
+        g.copy(), c.copy(), ops), end_time - start_time))
     print("ok")
